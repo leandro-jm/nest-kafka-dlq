@@ -1,16 +1,18 @@
 import { Controller, NotImplementedException } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 import { Kafka } from 'kafkajs';
 
 @Controller()
 export class AppController {
-  constructor() {
+  constructor(configService: ConfigService) {
     const kafka = new Kafka({
-      clientId: 'nest-kafka-app',
-      brokers: ['localhost:9092'],
+      clientId: configService.get<string>('KAFKA_CLIENT_ID'),
+      brokers: [configService.get<string>('KAFKA_BROKER')],
     });
 
-    const consumer = kafka.consumer({ groupId: 'nest-kafka-app-group' });
+    const consumer = kafka.consumer({
+      groupId: configService.get<string>('KAFKA_CONSUMER_GROUP_ID'),
+    });
 
     const deadLetterProducer = kafka.producer();
 
@@ -18,7 +20,7 @@ export class AppController {
       try {
         console.log('Received message: ' + message?.value?.toString());
         // process the message here
-        //throw new NotImplementedException('Teste');
+        throw new NotImplementedException('Simulation of error!');
       } catch (error) {
         console.error(
           `Error processing message ${message.value.toString()}: ${
@@ -26,7 +28,9 @@ export class AppController {
           }`,
         );
 
-        const deadLetterTopic = 'nest-kafka-app.dead-letter';
+        const deadLetterTopic = configService.get<string>(
+          'KAFKA_TOPIC_DEAD_LETTER',
+        );
         const deadLetterMessage = {
           value: message.value,
           headers: {
@@ -47,16 +51,13 @@ export class AppController {
       }
     };
 
-    consumer.subscribe({ topic: 'nest-kafka-app', fromBeginning: true });
+    consumer.subscribe({
+      topic: configService.get<string>('KAFKA_TOPIC'),
+      fromBeginning: true,
+    });
 
     consumer.run({
       eachMessage: handleConsume,
     });
-  }
-
-  @MessagePattern('nest-kafka-app')
-  async processMessage(@Payload() message) {
-    console.log('Received message', message.value);
-    // process the message here
   }
 }
