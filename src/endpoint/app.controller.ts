@@ -34,9 +34,10 @@ export class AppController {
         const deadLetterMessage = {
           value: message.value,
           headers: {
-            'x-origin-topic': topic,
-            'x-origin-partition': partition.toString(),
-            'x-origin-offset': message.offset.toString(),
+            'origin-topic': topic,
+            'origin-partition': partition.toString(),
+            'origin-offset': message.offset.toString(),
+            'origin-error': error.message.toString(),
           },
         };
 
