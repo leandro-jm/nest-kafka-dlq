@@ -24,7 +24,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Example of Dead Latter Qeue using KafkaJS and Nest.
 
 ## Installation
 
