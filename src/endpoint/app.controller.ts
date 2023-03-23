@@ -1,11 +1,12 @@
-import { Controller, NotImplementedException } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Kafka } from 'kafkajs';
+import { Kafka, logLevel } from 'kafkajs';
 
 @Controller()
 export class AppController {
   constructor(configService: ConfigService) {
     const kafka = new Kafka({
+      logLevel: logLevel.INFO,
       clientId: configService.get<string>('KAFKA_CLIENT_ID'),
       brokers: [configService.get<string>('KAFKA_BROKER')],
     });
@@ -20,7 +21,7 @@ export class AppController {
       try {
         console.log('Received message: ' + message?.value?.toString());
         // process the message here
-        throw new NotImplementedException('Simulation of error!');
+        //throw new NotImplementedException('Simulation of error!');
       } catch (error) {
         console.error(
           `Error processing message ${message.value.toString()}: ${
@@ -58,6 +59,7 @@ export class AppController {
     });
 
     consumer.run({
+      autoCommit: false,
       eachMessage: handleConsume,
     });
   }
